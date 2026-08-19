@@ -1,0 +1,1 @@
+import{a as o}from"./index-n3ykPomq.js";const t=[["path",{d:"m9 18 6-6-6-6",key:"mthhwq"}]],c=o("chevron-right",t);const e=[["path",{d:"M16 7h6v6",key:"box55l"}],["path",{d:"m22 7-8.5 8.5-5-5L2 17",key:"1t1m79"}]],h=o("trending-up",e);export{c as C,h as T};
