@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preload" as="image" href="/tvaxkva-loading-logo.webp" type="image/webp" fetchpriority="high" />
+    <title>TVAxKVA Live – Live Gaming Creators & Streamer Status</title>
+    <meta
+      name="description"
+      content="TVAxKVA Live is the ultimate real-time dashboard for TVA x KVA creators. Instantly check live YouTube and Kick streamers, trending gaming channels, and active online broadcasts."
+    />
+    <meta
+      name="keywords"
+      content="TVAxKVA, TVAxKVA online, TVAxKVA Live, TVA x KVA, TVA KVA live, TVA live, KVA live, Kick live, YouTube live, TVA streamers, KVA streamers, Thakkuduvava Adholokam, Eagle Gaming"
+    />
+    <meta name="application-name" content="TVAxKVA Live" />
+    <meta name="robots" content="index, follow" />
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#050816" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="TVAxKVA" />
+    <link rel="canonical" href="https://www.tvaxkva.com/" />
+    <meta property="og:title" content="TVAxKVA Live – Live Gaming Creators & Streamer Status" />
+    <meta
+      property="og:description"
+      content="TVAxKVA Live is the ultimate real-time dashboard for TVA x KVA creators. Instantly check live YouTube and Kick streamers, trending gaming channels, and active online broadcasts."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.tvaxkva.com/" />
+    <meta property="og:image" content="https://www.tvaxkva.com/logo.png" />
+    <meta property="og:image:secure_url" content="https://www.tvaxkva.com/logo.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content="TVAxKVA Live logo" />
+    <meta property="og:site_name" content="TVAxKVA Live" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TVAxKVA Live – Live Gaming Creators & Streamer Status" />
+    <meta
+      name="twitter:description"
+      content="TVAxKVA Live is the ultimate real-time dashboard for TVA x KVA creators. Instantly check live YouTube and Kick streamers, trending gaming channels, and active online broadcasts."
+    />
+    <meta name="twitter:image" content="https://www.tvaxkva.com/logo.png" />
+    <meta name="twitter:image:alt" content="TVAxKVA Live logo" />
+    <meta name="msapplication-TileImage" content="/favicon-48x48.png" />
+    <meta name="msapplication-TileColor" content="#050914" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MP98NHXGWR" data-tva-ga="G-MP98NHXGWR"></script>
+    <script data-tva-ga="G-MP98NHXGWR-inline">
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-MP98NHXGWR');
+    </script>
+    <script>
+      (function () {
+        function b(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+        document.addEventListener("contextmenu", b, true);
+        document.addEventListener(
+          "keydown",
+          function (e) {
+            var k = (e.key || "").toLowerCase();
+            if (k === "f12") return b(e);
+            if (!(e.ctrlKey || e.metaKey)) return;
+            if (k === "u" || k === "s") return b(e);
+            if (e.shiftKey && (k === "i" || k === "j" || k === "c")) return b(e);
+          },
+          true,
+        );
+      })();
+    </script>
+    <link rel="stylesheet" href="/assets/styles-DK8vxMCG.css" />
+    <link rel="stylesheet" href="/assets/index-DsguZavj.css" />
+    <style>
+      body{background:#05070f}
+      #tva-splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;background:#05070f;color:#f4f4f5;font-family:system-ui,sans-serif}
+      #tva-splash__bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+      .tva-splash__orb{position:absolute;border-radius:50%;filter:blur(64px);opacity:.55;animation:tva-splash-orb 14s ease-in-out infinite}
+      .tva-splash__orb--r{width:42vmin;height:42vmin;top:-8%;left:-6%;background:radial-gradient(circle,hsl(352 92% 52%/.55),transparent 68%)}
+      .tva-splash__orb--g{width:38vmin;height:38vmin;top:10%;right:-8%;background:radial-gradient(circle,#53fc1888,transparent 68%);animation-delay:-4s}
+      #tva-splash__status{font-size:.8rem;color:#a1a1aa;letter-spacing:.04em;position:relative;z-index:1}
+      @keyframes tva-splash-orb{50%{transform:translate(6%,8%) scale(1.08);opacity:.75}}
+      body.tva-app-ready #tva-splash{display:none!important}
+    </style>
+  </head>
+  <body>
+    <div id="tva-splash" aria-live="polite" aria-busy="true" aria-label="Loading TVAxKVA Live">
+      <div id="tva-splash__bg" aria-hidden>
+        <div class="tva-splash__orb tva-splash__orb--r"></div>
+        <div class="tva-splash__orb tva-splash__orb--g"></div>
+      </div>
+      <p id="tva-splash__status">Starting TVA x KVA Live…</p>
+    </div>
+    <div id="app"></div>
+    <script type="module" src="/assets/index-n3ykPomq.js"></script>
+    <script>
+      (function () {
+        function done() {
+          var s = document.getElementById("tva-splash");
+          if (s) s.remove();
+          document.body.classList.add("tva-app-ready");
+        }
+        window.addEventListener("tva-app-ready", done);
+        window.setTimeout(done, 4500);
+      })();
+    </script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker
+            .register("/sw.js", { scope: "/" })
+            .then(function (reg) {
+              console.log("[TVAxKVA] SW registered:", reg.scope);
+              reg.addEventListener("updatefound", function () {
+                var sw = reg.installing;
+                if (!sw) return;
+                sw.addEventListener("statechange", function () {
+                  if (sw.state === "installed" && navigator.serviceWorker.controller) {
+                    window.dispatchEvent(new CustomEvent("tva-sw-update-ready"));
+                  }
+                });
+              });
+            })
+            .catch(function (err) {
+              console.warn("[TVAxKVA] SW registration failed:", err);
+            });
+        });
+      }
+    </script>
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"6a3f7e49c4ad463baa07d7328343e510","r":1}' crossorigin="anonymous"></script>
+</body>
+</html>
