@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>TVAxKVA Live</title>
+  <meta name="description" content="TVAxKVA Live - Gaming Streamer Dashboard">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- SPLASH -->
+  <div id="splash">
+    <div class="splash-glow red"></div>
+    <div class="splash-glow green"></div>
+
+    <div class="splash-logo">
+      <span class="red-text">TVA</span>
+      <span class="x-text">×</span>
+      <span class="green-text">KVA</span>
+    </div>
+
+    <div class="loader"></div>
+    <p>Starting TVA x KVA Live<span id="dots"></span></p>
+  </div>
+
+  <!-- APP -->
+  <div id="app">
+
+    <!-- HEADER -->
+    <header class="header">
+
+      <div class="brand" onclick="showHome()">
+        <div class="brand-logo">
+          <span class="red-text">TVA</span>
+          <span class="x-text">×</span>
+          <span class="green-text">KVA</span>
+        </div>
+
+        <span class="brand-live">
+          <span class="live-dot"></span>
+          LIVE
+        </span>
+      </div>
+
+      <div class="header-actions">
+
+        <button class="refresh-btn" onclick="refreshData()">
+          ↻ <span>Refresh</span>
+        </button>
+
+        <a href="https://youtube.com" target="_blank" class="platform youtube">
+          ▶ YouTube
+        </a>
+
+        <a href="https://kick.com" target="_blank" class="platform kick">
+          ● Kick
+        </a>
+
+      </div>
+
+    </header>
+
+    <!-- MAIN -->
+    <main id="main-content">
+
+      <!-- HOME PAGE -->
+      <section id="home-page" class="page active">
+
+        <div class="hero">
+
+          <div>
+            <div class="hero-badge">
+              <span class="live-dot"></span>
+              REAL-TIME STREAMING DASHBOARD
+            </div>
+
+            <h1>
+              TVAxKVA
+              <span>Live</span>
+            </h1>
+
+            <p>
+              Find your favorite gaming creators and see
+              who is live right now.
+            </p>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat">
+              <strong id="live-count">0</strong>
+              <span>LIVE NOW</span>
+            </div>
+
+            <div class="stat">
+              <strong id="total-count">0</strong>
+              <span>STREAMERS</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SEARCH -->
+        <div class="search-area">
+
+          <div class="search-box">
+            <span>⌕</span>
+            <input
+              type="text"
+              id="search"
+              placeholder="Search streamer or game..."
+              oninput="filterStreamers()"
+            >
+          </div>
+
+          <div class="filters">
+            <button class="filter active" onclick="setFilter('all', this)">
+              All
+            </button>
+
+            <button class="filter" onclick="setFilter('live', this)">
+              🔴 Live
+            </button>
+
+            <button class="filter" onclick="setFilter('youtube', this)">
+              ▶ YouTube
+            </button>
+
+            <button class="filter" onclick="setFilter('kick', this)">
+              🟢 Kick
+            </button>
+
+            <button class="filter" onclick="setFilter('offline', this)">
+              Offline
+            </button>
+          </div>
+
+        </div>
+
+        <!-- LIVE SECTION -->
+        <section class="content-section">
+
+          <div class="section-title">
+            <div>
+              <h2>🔴 YouTube Live</h2>
+              <p>Creators currently streaming on YouTube</p>
+            </div>
+
+            <span class="section-count" id="youtube-count">0 LIVE</span>
+          </div>
+
+          <div id="youtube-grid" class="streamer-grid"></div>
+
+        </section>
+
+        <!-- KICK -->
+        <section class="content-section">
+
+          <div class="section-title">
+            <div>
+              <h2>🟢 Kick Live</h2>
+              <p>Creators currently streaming on Kick</p>
+            </div>
+
+            <span class="section-count" id="kick-count">0 LIVE</span>
+          </div>
+
+          <div id="kick-grid" class="streamer-grid"></div>
+
+        </section>
+
+        <!-- ALL STREAMERS -->
+        <section class="content-section">
+
+          <div class="section-title">
+            <div>
+              <h2>🎮 Gaming Streamers</h2>
+              <p>Browse all available creators</p>
+            </div>
+          </div>
+
+          <div id="all-grid" class="streamer-grid"></div>
+
+          <div id="no-results" class="no-results">
+            <div>🔎</div>
+            <h3>No streamers found</h3>
+            <p>Try another search.</p>
+          </div>
+
+        </section>
+
+      </section>
+
+
+      <!-- PROFILE PAGE -->
+      <section id="profile-page" class="page">
+
+        <button class="back-btn" onclick="showHome()">
+          ← Back to Home
+        </button>
+
+        <div id="profile-content"></div>
+
+      </section>
+
+    </main>
+
+    <!-- MOBILE NAV -->
+    <nav class="mobile-nav">
+
+      <button class="mobile-nav-item active" onclick="showHome()">
+        <span>⌂</span>
+        <small>Home</small>
+      </button>
+
+      <button class="mobile-nav-item" onclick="setFilterFromNav('live')">
+        <span>🔴</span>
+        <small>Live</small>
+      </button>
+
+      <button class="mobile-nav-item" onclick="setFilterFromNav('youtube')">
+        <span>▶</span>
+        <small>YouTube</small>
+      </button>
+
+      <button class="mobile-nav-item" onclick="setFilterFromNav('kick')">
+        <span>●</span>
+        <small>Kick</small>
+      </button>
+
+    </nav>
+
+    <!-- SCROLL TOP -->
+    <button id="scroll-top" onclick="scrollToTop()">
+      ↑
+    </button>
+
+    <!-- FOOTER -->
+    <footer>
+
+      <div class="footer-brand">
+        <span class="red-text">TVA</span>
+        <span>×</span>
+        <span class="green-text">KVA</span>
+      </div>
+
+      <p>
+        Gaming creators. One place. Always live.
+      </p>
+
+      <div class="footer-links">
+        <a href="https://youtube.com" target="_blank">YouTube</a>
+        <a href="https://kick.com" target="_blank">Kick</a>
+      </div>
+
+      <small>
+        © 2026 TVAxKVA Live
+      </small>
+
+    </footer>
+
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
