@@ -1,297 +1,419 @@
-/* =========================================================
-   TVAxKVA LIVE - FRONTEND JAVASCRIPT
-   ========================================================= */
-
 (() => {
   "use strict";
 
-  /* =========================================================
-     CONFIG
-     ========================================================= */
+  const APP = document.getElementById("app");
 
-  const CONFIG = {
-    siteName: "TVAxKVA Live",
+  if (!APP) {
+    console.error("TVAxKVA: #app not found");
+    return;
+  }
 
-    links: {
-      home: "#/",
-      youtube: "#/youtube",
-      kick: "#/kick"
+  const creators = [
+    {
+      id: "tva",
+      name: "TVA Gaming",
+      username: "@TVAGaming",
+      platform: "YouTube",
+      game: "Gaming",
+      title: "TVA Gaming Live Stream",
+      viewers: "1.2K",
+      url: "https://www.youtube.com/"
     },
+    {
+      id: "kva",
+      name: "KVA Gaming",
+      username: "@KVAGaming",
+      platform: "Kick",
+      game: "Gaming",
+      title: "KVA Gaming Live",
+      viewers: "850",
+      url: "https://kick.com/"
+    }
+  ];
 
-    refreshInterval: 30000,
+  let currentPage = "home";
+  let searchText = "";
 
-    /* Demo streamer data */
-    streamers: [
-      {
-        id: "tva-01",
-        name: "TVA Gaming",
-        username: "tvagaming",
-        platform: "youtube",
-        game: "Gaming",
-        title: "LIVE Gaming Stream",
-        viewers: 1240,
-        thumbnail:
-          "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=900&q=80",
-        avatar:
-          "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
-        live: true,
-        url: "https://www.youtube.com/"
-      },
+  /* =========================
+     BASIC STYLES
+     ========================= */
 
-      {
-        id: "kva-01",
-        name: "KVA Gaming",
-        username: "kvagaming",
-        platform: "kick",
-        game: "Grand Theft Auto V",
-        title: "GTA V Malayalam Live 🔥",
-        viewers: 876,
-        thumbnail:
-          "https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=900&q=80",
-        avatar:
-          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
-        live: true,
-        url: "https://kick.com/"
-      },
+  const style = document.createElement("style");
 
-      {
-        id: "eagle-01",
-        name: "Eagle Gaming",
-        username: "eaglegaming",
-        platform: "youtube",
-        game: "Free Fire",
-        title: "Rank Push Live 🔴",
-        viewers: 532,
-        thumbnail:
-          "https://images.unsplash.com/photo-1560253023-3ec5d502959f?auto=format&fit=crop&w=900&q=80",
-        avatar:
-          "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=200&q=80",
-        live: true,
-        url: "https://www.youtube.com/"
-      },
-
-      {
-        id: "streamer-04",
-        name: "Gaming Creator",
-        username: "gamingcreator",
-        platform: "kick",
-        game: "Minecraft",
-        title: "Minecraft Survival",
-        viewers: 245,
-        thumbnail:
-          "https://images.unsplash.com/photo-1607513746994-51f730a44826?auto=format&fit=crop&w=900&q=80",
-        avatar:
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-        live: true,
-        url: "https://kick.com/"
-      }
-    ]
-  };
-
-
-  /* =========================================================
-     STATE
-     ========================================================= */
-
-  const state = {
-    route: getRoute(),
-    search: "",
-    platform: "all",
-    selectedStreamer: null,
-    lastUpdated: new Date()
-  };
-
-
-  /* =========================================================
-     HELPERS
-     ========================================================= */
-
-  function getRoute() {
-    const hash = window.location.hash || "#/";
-
-    if (hash.startsWith("#/streamer/")) {
-      return "streamer";
+  style.textContent = `
+    #app {
+      min-height: 100vh;
+      background: #05070f;
+      color: #fff;
     }
 
-    if (hash === "#/youtube") {
-      return "youtube";
-    }
-
-    if (hash === "#/kick") {
-      return "kick";
-    }
-
-    return "home";
-  }
-
-
-  function escapeHTML(value) {
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-
-  function formatViewers(number) {
-    if (number >= 1000000) {
-      return `${(number / 1000000).toFixed(1)}M`;
-    }
-
-    if (number >= 1000) {
-      return `${(number / 1000).toFixed(1)}K`;
-    }
-
-    return String(number);
-  }
-
-
-  function platformName(platform) {
-    return platform === "youtube" ? "YouTube" : "Kick";
-  }
-
-
-  function platformColor(platform) {
-    return platform === "youtube" ? "#ff3030" : "#53fc18";
-  }
-
-
-  function navigate(path) {
-    window.location.hash = path;
-  }
-
-
-  /* =========================================================
-     DATA FILTER
-     ========================================================= */
-
-  function getVisibleStreamers() {
-    let data = CONFIG.streamers.filter((streamer) => streamer.live);
-
-    if (state.platform !== "all") {
-      data = data.filter(
-        (streamer) => streamer.platform === state.platform
-      );
-    }
-
-    if (state.search.trim()) {
-      const search = state.search.toLowerCase();
-
-      data = data.filter((streamer) => {
-        return (
-          streamer.name.toLowerCase().includes(search) ||
-          streamer.username.toLowerCase().includes(search) ||
-          streamer.game.toLowerCase().includes(search) ||
-          streamer.title.toLowerCase().includes(search)
+    .tva-main {
+      min-height: 100vh;
+      background:
+        radial-gradient(
+          circle at 10% 0%,
+          rgba(255,40,55,.10),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 90% 0%,
+          rgba(83,252,24,.08),
+          transparent 30%
         );
-      });
     }
 
-    return data;
-  }
+    .tva-header {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      width: 100%;
+      background: rgba(3,5,12,.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .tva-header-inner {
+      max-width: 1400px;
+      margin: auto;
+      min-height: 72px;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .tva-logo-text {
+      text-decoration: none;
+      white-space: nowrap;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .tva-red {
+      color: #ff4545;
+      text-shadow: 0 0 12px rgba(255,55,55,.55);
+    }
+
+    .tva-green {
+      color: #53fc18;
+      text-shadow: 0 0 12px rgba(83,252,24,.45);
+    }
+
+    .tva-x {
+      color: #9ba6b1;
+      margin: 0 4px;
+    }
+
+    .tva-nav {
+      margin-left: auto;
+      display: flex;
+      gap: 6px;
+    }
+
+    .tva-nav button {
+      border: 1px solid transparent;
+      background: transparent;
+      color: #8d99aa;
+      padding: 9px 13px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .tva-nav button:hover,
+    .tva-nav button.active {
+      color: #fff;
+      background: rgba(83,252,24,.08);
+      border-color: rgba(83,252,24,.2);
+    }
+
+    .tva-container {
+      width: min(1400px, 100%);
+      margin: auto;
+      padding: 45px 18px 90px;
+    }
+
+    .tva-hero {
+      text-align: center;
+      padding: 20px 0 35px;
+    }
+
+    .tva-hero h1 {
+      margin: 15px 0 10px;
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 1.05;
+      font-weight: 950;
+    }
+
+    .tva-hero p {
+      color: #8995a8;
+      max-width: 650px;
+      margin: auto;
+      line-height: 1.6;
+    }
+
+    .tva-search {
+      max-width: 650px;
+      margin: 0 auto 22px;
+    }
+
+    .tva-search input {
+      width: 100%;
+      height: 48px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.1);
+      outline: none;
+      background: rgba(255,255,255,.045);
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .tva-search input:focus {
+      border-color: rgba(83,252,24,.45);
+      box-shadow: 0 0 0 3px rgba(83,252,24,.06);
+    }
+
+    .tva-filters {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 25px;
+    }
+
+    .tva-filter {
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.035);
+      color: #8d99aa;
+      border-radius: 999px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .tva-filter.active {
+      color: #53fc18;
+      border-color: rgba(83,252,24,.35);
+      background: rgba(83,252,24,.08);
+    }
+
+    .tva-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .tva-card {
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(255,255,255,.035);
+      border-radius: 17px;
+      padding: 20px;
+      transition: .2s ease;
+    }
+
+    .tva-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(83,252,24,.25);
+      background: rgba(255,255,255,.05);
+    }
+
+    .tva-card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tva-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      font-size: 18px;
+      font-weight: 950;
+      background:
+        linear-gradient(
+          135deg,
+          #ff3030,
+          #53fc18
+        );
+      color: #05070f;
+    }
+
+    .tva-name {
+      color: #fff;
+      font-weight: 900;
+      font-size: 16px;
+    }
+
+    .tva-username {
+      color: #718096;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .tva-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 18px;
+      color: #ff4b4b;
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .05em;
+    }
+
+    .tva-live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ff3030;
+      box-shadow: 0 0 10px #ff3030;
+    }
+
+    .tva-title {
+      color: #e6eaf0;
+      font-weight: 750;
+      margin-top: 10px;
+      line-height: 1.45;
+    }
+
+    .tva-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 18px;
+      color: #738095;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .tva-platform-youtube {
+      color: #ff4545;
+    }
+
+    .tva-platform-kick {
+      color: #53fc18;
+    }
+
+    .tva-watch {
+      width: 100%;
+      margin-top: 18px;
+      height: 40px;
+      border: 0;
+      border-radius: 9px;
+      cursor: pointer;
+      background: #53fc18;
+      color: #05070f;
+      font-weight: 950;
+    }
+
+    .tva-watch.youtube {
+      background: #ff4545;
+      color: #fff;
+    }
+
+    .tva-empty {
+      grid-column: 1 / -1;
+      padding: 70px 20px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 17px;
+      background: rgba(255,255,255,.025);
+    }
+
+    .tva-empty h2 {
+      margin: 10px 0;
+    }
+
+    .tva-empty p {
+      color: #718096;
+    }
+
+    .tva-footer {
+      text-align: center;
+      padding: 30px 18px;
+      color: #566174;
+      font-size: 12px;
+    }
+
+    @media(max-width: 767px) {
+      .tva-header-inner {
+        min-height: 62px;
+        padding: 8px 13px;
+      }
+
+      .tva-logo-text {
+        font-size: 17px;
+      }
+
+      .tva-nav button {
+        padding: 7px 8px;
+        font-size: 11px;
+      }
+
+      .tva-container {
+        padding: 30px 13px 90px;
+      }
+
+      .tva-hero h1 {
+        font-size: 32px;
+      }
+
+      .tva-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
 
 
-  /* =========================================================
-     LOGO
-     ========================================================= */
-
-  function logoPair(size = "header") {
-    return `
-      <div class="tva-brand-logo-pair tva-brand-logo-pair--${size}">
-        <img
-          class="tva-brand-logo tva-brand-logo--tva"
-          src="/tva-logo.webp"
-          alt="TVA"
-          onerror="this.style.display='none'"
-        />
-
-        <img
-          class="tva-brand-logo tva-brand-logo--kva"
-          src="/kva-logo.webp"
-          alt="KVA"
-          onerror="this.style.display='none'"
-        />
-      </div>
-    `;
-  }
-
-
-  /* =========================================================
+  /* =========================
      HEADER
-     ========================================================= */
+     ========================= */
 
-  function renderHeader() {
+  function header() {
     return `
-      <header
-        style="
-          position:sticky;
-          top:0;
-          z-index:50;
-          width:100%;
-          background:rgba(1,3,8,.92);
-          backdrop-filter:blur(18px);
-          border-bottom:1px solid rgba(255,255,255,.08);
-        "
-      >
+      <header class="tva-header">
 
-        <div
-          style="
-            max-width:1400px;
-            margin:auto;
-            padding:12px 18px;
-            display:flex;
-            align-items:center;
-            gap:18px;
-          "
-        >
+        <div class="tva-header-inner">
 
           <a
             href="#/"
-            style="
-              display:flex;
-              align-items:center;
-              text-decoration:none;
-            "
+            class="tva-logo-text"
           >
-            ${logoPair("header")}
+            <span class="tva-red">TVA</span>
+            <span class="tva-x">×</span>
+            <span class="tva-green">KVA</span>
           </a>
 
-          <div
-            class="tva-brand-title"
-            style="
-              font-size:1.15rem;
-              font-weight:900;
-            "
-          >
-            <span class="tva-brand-tva">TVA</span>
-            <span class="tva-brand-x">×</span>
-            <span class="tva-brand-kva">KVA</span>
-          </div>
+          <nav class="tva-nav">
 
-          <nav
-            style="
-              display:flex;
-              align-items:center;
-              gap:7px;
-              margin-left:auto;
-            "
-          >
+            <button
+              data-page="home"
+              class="${currentPage === "home" ? "active" : ""}"
+            >
+              Home
+            </button>
 
-            ${navButton("#/", "Home", state.route === "home")}
+            <button
+              data-page="youtube"
+              class="${currentPage === "youtube" ? "active" : ""}"
+            >
+              YouTube
+            </button>
 
-            ${navButton(
-              "#/youtube",
-              "YouTube",
-              state.route === "youtube"
-            )}
-
-            ${navButton(
-              "#/kick",
-              "Kick",
-              state.route === "kick"
-            )}
+            <button
+              data-page="kick"
+              class="${currentPage === "kick" ? "active" : ""}"
+            >
+              Kick
+            </button>
 
           </nav>
 
@@ -302,61 +424,47 @@
   }
 
 
-  function navButton(url, text, active) {
+  /* =========================
+     HERO
+     ========================= */
+
+  function hero() {
     return `
-      <a
-        href="${url}"
-        style="
-          padding:9px 13px;
-          border-radius:10px;
-          text-decoration:none;
-          font-weight:700;
-          font-size:.88rem;
-          color:${active ? "#fff" : "#8995a8"};
-          background:${active ? "rgba(83,252,24,.10)" : "transparent"};
-          border:1px solid ${
-            active ? "rgba(83,252,24,.25)" : "transparent"
-          };
-          transition:.2s;
-        "
-      >
-        ${text}
-      </a>
+      <section class="tva-hero">
+
+        <div class="tva-brand-title">
+          <span class="tva-brand-tva">TVA</span>
+          <span class="tva-brand-x">×</span>
+          <span class="tva-brand-kva">KVA</span>
+        </div>
+
+        <h1>
+          Live Gaming Creators
+        </h1>
+
+        <p>
+          Find TVA × KVA creators streaming live
+          on YouTube and Kick.
+        </p>
+
+      </section>
     `;
   }
 
 
-  /* =========================================================
+  /* =========================
      SEARCH
-     ========================================================= */
+     ========================= */
 
-  function renderSearch() {
+  function searchBox() {
     return `
-      <div
-        style="
-          width:100%;
-          max-width:650px;
-          margin:0 auto 25px;
-          position:relative;
-        "
-      >
+      <div class="tva-search">
 
         <input
-          id="tva-search"
+          id="tva-search-input"
           type="search"
-          value="${escapeHTML(state.search)}"
-          placeholder="Search streamers, games..."
-          autocomplete="off"
-          style="
-            width:100%;
-            padding:14px 18px;
-            border-radius:14px;
-            border:1px solid rgba(255,255,255,.12);
-            outline:none;
-            background:rgba(255,255,255,.045);
-            color:#fff;
-            font-size:15px;
-          "
+          placeholder="Search streamers or games..."
+          value="${escape(searchText)}"
         />
 
       </div>
@@ -364,1222 +472,443 @@
   }
 
 
-  /* =========================================================
-     FILTER BUTTONS
-     ========================================================= */
+  /* =========================
+     FILTERS
+     ========================= */
 
-  function renderFilters() {
-    const filters = [
-      ["all", "All"],
-      ["youtube", "YouTube"],
-      ["kick", "Kick"]
-    ];
-
+  function filters() {
     return `
-      <div
-        style="
-          display:flex;
-          justify-content:center;
-          gap:8px;
-          flex-wrap:wrap;
-          margin-bottom:25px;
-        "
-      >
+      <div class="tva-filters">
 
-        ${filters
-          .map(([value, label]) => {
-            const active = state.platform === value;
+        <button
+          class="tva-filter ${
+            currentPage === "home" ? "active" : ""
+          }"
+          data-filter="all"
+        >
+          All
+        </button>
 
-            return `
-              <button
-                class="tva-filter"
-                data-platform="${value}"
-                style="
-                  cursor:pointer;
-                  border:1px solid ${
-                    active
-                      ? "rgba(83,252,24,.45)"
-                      : "rgba(255,255,255,.10)"
-                  };
-                  background:${
-                    active
-                      ? "rgba(83,252,24,.10)"
-                      : "rgba(255,255,255,.035)"
-                  };
-                  color:${active ? "#70ff3b" : "#9ca7b8"};
-                  border-radius:999px;
-                  padding:9px 17px;
-                  font-weight:700;
-                "
-              >
-                ${label}
-              </button>
-            `;
-          })
-          .join("")}
+        <button
+          class="tva-filter ${
+            currentPage === "youtube" ? "active" : ""
+          }"
+          data-filter="youtube"
+        >
+          YouTube
+        </button>
+
+        <button
+          class="tva-filter ${
+            currentPage === "kick" ? "active" : ""
+          }"
+          data-filter="kick"
+        >
+          Kick
+        </button>
 
       </div>
     `;
   }
 
 
-  /* =========================================================
-     STREAMER CARD
-     ========================================================= */
+  /* =========================
+     CARD
+     ========================= */
 
-  function streamerCard(streamer) {
-    const color = platformColor(streamer.platform);
+  function card(creator) {
+
+    const initials = creator.name
+      .split(" ")
+      .map(x => x[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+
+    const youtube =
+      creator.platform.toLowerCase() === "youtube";
 
     return `
-      <article
-        class="tva-streamer-card"
-        data-id="${streamer.id}"
-        style="
-          overflow:hidden;
-          border-radius:17px;
-          background:rgba(255,255,255,.035);
-          border:1px solid rgba(255,255,255,.09);
-          transition:transform .2s ease,border-color .2s ease;
-        "
-      >
+      <article class="tva-card">
 
-        <div
-          style="
-            position:relative;
-            aspect-ratio:16/9;
-            overflow:hidden;
-            background:#080b12;
-          "
-        >
+        <div class="tva-card-top">
 
-          <img
-            src="${streamer.thumbnail}"
-            alt="${escapeHTML(streamer.title)}"
-            loading="lazy"
-            style="
-              width:100%;
-              height:100%;
-              object-fit:cover;
-              display:block;
-            "
-          />
-
-          <div
-            style="
-              position:absolute;
-              top:10px;
-              left:10px;
-              display:flex;
-              align-items:center;
-              gap:6px;
-              padding:5px 9px;
-              border-radius:7px;
-              background:rgba(0,0,0,.78);
-              color:#fff;
-              font-size:11px;
-              font-weight:900;
-            "
-          >
-            <span
-              style="
-                width:7px;
-                height:7px;
-                border-radius:50%;
-                background:#ff3030;
-                box-shadow:0 0 9px #ff3030;
-              "
-            ></span>
-
-            LIVE
+          <div class="tva-avatar">
+            ${initials}
           </div>
 
-          <div
-            style="
-              position:absolute;
-              bottom:10px;
-              right:10px;
-              padding:5px 8px;
-              border-radius:6px;
-              background:rgba(0,0,0,.82);
-              color:#fff;
-              font-size:11px;
-              font-weight:700;
-            "
-          >
-            ${formatViewers(streamer.viewers)} watching
-          </div>
+          <div>
 
-        </div>
+            <div class="tva-name">
+              ${escape(creator.name)}
+            </div>
 
-
-        <div style="padding:14px;">
-
-          <div
-            style="
-              display:flex;
-              align-items:center;
-              gap:10px;
-            "
-          >
-
-            <img
-              src="${streamer.avatar}"
-              alt=""
-              style="
-                width:40px;
-                height:40px;
-                border-radius:50%;
-                object-fit:cover;
-              "
-            />
-
-            <div style="min-width:0;flex:1;">
-
-              <div
-                style="
-                  font-weight:800;
-                  color:#f5f7fa;
-                  white-space:nowrap;
-                  overflow:hidden;
-                  text-overflow:ellipsis;
-                "
-              >
-                ${escapeHTML(streamer.name)}
-              </div>
-
-              <div
-                style="
-                  font-size:12px;
-                  color:#768398;
-                  margin-top:2px;
-                "
-              >
-                @${escapeHTML(streamer.username)}
-              </div>
-
+            <div class="tva-username">
+              ${escape(creator.username)}
             </div>
 
           </div>
 
+        </div>
 
-          <div
-            style="
-              margin-top:12px;
-              font-size:14px;
-              color:#dce2ea;
-              font-weight:650;
-              line-height:1.4;
-            "
-          >
-            ${escapeHTML(streamer.title)}
-          </div>
+        <div class="tva-live">
 
+          <span class="tva-live-dot"></span>
 
-          <div
-            style="
-              display:flex;
-              align-items:center;
-              justify-content:space-between;
-              gap:10px;
-              margin-top:13px;
-            "
-          >
-
-            <span
-              style="
-                color:${color};
-                font-size:12px;
-                font-weight:800;
-              "
-            >
-              ${platformName(streamer.platform)}
-            </span>
-
-            <button
-              class="tva-watch-button"
-              data-id="${streamer.id}"
-              style="
-                cursor:pointer;
-                border:0;
-                padding:8px 13px;
-                border-radius:8px;
-                background:${color};
-                color:#05070f;
-                font-weight:900;
-                font-size:12px;
-              "
-            >
-              Watch Live
-            </button>
-
-          </div>
+          LIVE NOW
 
         </div>
+
+        <div class="tva-title">
+          ${escape(creator.title)}
+        </div>
+
+        <div class="tva-meta">
+
+          <span
+            class="${
+              youtube
+                ? "tva-platform-youtube"
+                : "tva-platform-kick"
+            }"
+          >
+            ${creator.platform}
+          </span>
+
+          <span>
+            ${escape(creator.game)}
+          </span>
+
+          <span>
+            ${escape(creator.viewers)}
+            viewers
+          </span>
+
+        </div>
+
+        <button
+          class="tva-watch ${
+            youtube ? "youtube" : ""
+          }"
+          data-url="${escape(creator.url)}"
+        >
+          Watch Live
+        </button>
 
       </article>
     `;
   }
 
 
-  /* =========================================================
-     EMPTY STATE
-     ========================================================= */
+  /* =========================
+     FILTER DATA
+     ========================= */
 
-  function emptyState() {
-    return `
-      <div
-        class="home-no-live-empty"
-        style="
-          padding:70px 20px;
-          text-align:center;
-          border:1px solid rgba(255,255,255,.08);
-          border-radius:18px;
-          background:rgba(255,255,255,.025);
-        "
-      >
+  function filteredCreators() {
 
-        <div
-          style="
-            font-size:42px;
-            margin-bottom:12px;
-          "
-        >
-          📡
-        </div>
+    let list = creators;
 
-        <h2
-          style="
-            font-size:20px;
-            font-weight:900;
-            color:#fff;
-            margin-bottom:7px;
-          "
-        >
-          No live streamers found
-        </h2>
-
-        <p
-          style="
-            color:#778398;
-            font-size:14px;
-          "
-        >
-          Try another search or platform.
-        </p>
-
-      </div>
-    `;
-  }
-
-
-  /* =========================================================
-     HOME PAGE
-     ========================================================= */
-
-  function renderHome() {
-    state.platform = "all";
-
-    const streamers = getVisibleStreamers();
-
-    return `
-      ${renderHeader()}
-
-      <main
-        class="tva-dash tva-page-shell"
-        style="
-          min-height:100dvh;
-          background:
-            radial-gradient(
-              circle at 10% 0%,
-              rgba(255,40,60,.09),
-              transparent 30%
-            ),
-            radial-gradient(
-              circle at 90% 0%,
-              rgba(83,252,24,.07),
-              transparent 30%
-            );
-        "
-      >
-
-        <section
-          style="
-            max-width:1400px;
-            width:100%;
-            margin:auto;
-            padding:45px 18px 100px;
-          "
-        >
-
-          <div
-            style="
-              text-align:center;
-              margin-bottom:32px;
-            "
-          >
-
-            ${logoPair("md")}
-
-            <h1
-              style="
-                margin-top:15px;
-                font-size:clamp(28px,5vw,48px);
-                line-height:1.05;
-                font-weight:950;
-                color:#fff;
-              "
-            >
-              Live Gaming Creators
-            </h1>
-
-            <p
-              style="
-                margin:12px auto 0;
-                max-width:600px;
-                color:#8d99aa;
-                font-size:15px;
-              "
-            >
-              Find TVA × KVA creators streaming live on YouTube and Kick.
-            </p>
-
-          </div>
-
-
-          ${renderSearch()}
-
-          ${renderFilters()}
-
-
-          <div
-            id="tva-stream-grid"
-            class="tva-offline-grid"
-            style="
-              display:grid;
-              grid-template-columns:repeat(
-                auto-fit,
-                minmax(260px,1fr)
-              );
-              gap:18px;
-            "
-          >
-
-            ${
-              streamers.length
-                ? streamers.map(streamerCard).join("")
-                : emptyState()
-            }
-
-          </div>
-
-
-          <div
-            style="
-              text-align:center;
-              margin-top:30px;
-              color:#647084;
-              font-size:12px;
-            "
-          >
-            Last updated:
-            ${state.lastUpdated.toLocaleTimeString()}
-          </div>
-
-        </section>
-
-      </main>
-
-      ${renderMobileNav("home")}
-
-      ${renderScrollTop()}
-    `;
-  }
-
-
-  /* =========================================================
-     PLATFORM PAGE
-     ========================================================= */
-
-  function renderPlatform(platform) {
-    const streamers = getVisibleStreamers();
-
-    return `
-      ${renderHeader()}
-
-      <main
-        class="tva-dash tva-page-shell"
-        style="
-          min-height:100dvh;
-          background:
-            radial-gradient(
-              circle at 50% 0%,
-              ${
-                platform === "kick"
-                  ? "rgba(83,252,24,.09)"
-                  : "rgba(255,30,45,.09)"
-              },
-              transparent 35%
-            );
-        "
-      >
-
-        <section
-          style="
-            max-width:1400px;
-            width:100%;
-            margin:auto;
-            padding:40px 18px 100px;
-          "
-        >
-
-          <div
-            style="
-              display:flex;
-              justify-content:space-between;
-              align-items:end;
-              gap:15px;
-              margin-bottom:25px;
-            "
-          >
-
-            <div>
-
-              <div
-                style="
-                  font-size:12px;
-                  text-transform:uppercase;
-                  letter-spacing:.12em;
-                  color:${platformColor(platform)};
-                  font-weight:900;
-                  margin-bottom:6px;
-                "
-              >
-                Live Platform
-              </div>
-
-              <h1
-                style="
-                  font-size:clamp(28px,5vw,42px);
-                  color:#fff;
-                  font-weight:950;
-                "
-              >
-                ${platformName(platform)} Live
-              </h1>
-
-            </div>
-
-            <div
-              style="
-                color:#728096;
-                font-size:13px;
-              "
-            >
-              ${streamers.length} live
-            </div>
-
-          </div>
-
-
-          ${renderSearch()}
-
-
-          <div
-            id="tva-stream-grid"
-            style="
-              display:grid;
-              grid-template-columns:repeat(
-                auto-fit,
-                minmax(260px,1fr)
-              );
-              gap:18px;
-            "
-          >
-
-            ${
-              streamers.length
-                ? streamers.map(streamerCard).join("")
-                : emptyState()
-            }
-
-          </div>
-
-        </section>
-
-      </main>
-
-      ${renderMobileNav(platform)}
-
-      ${renderScrollTop()}
-    `;
-  }
-
-
-  /* =========================================================
-     STREAMER PROFILE
-     ========================================================= */
-
-  function renderStreamer(id) {
-    const streamer = CONFIG.streamers.find(
-      (item) => item.id === id
-    );
-
-    if (!streamer) {
-      return `
-        ${renderHeader()}
-
-        <main
-          style="
-            min-height:100dvh;
-            display:grid;
-            place-items:center;
-            color:#fff;
-            background:#05070f;
-          "
-        >
-          <div style="text-align:center;">
-            <h1>Streamer not found</h1>
-            <button
-              onclick="location.hash='#/'"
-              style="
-                margin-top:15px;
-                padding:10px 16px;
-                border-radius:8px;
-                cursor:pointer;
-              "
-            >
-              Go Home
-            </button>
-          </div>
-        </main>
-      `;
+    if (currentPage === "youtube") {
+      list = list.filter(
+        c => c.platform === "YouTube"
+      );
     }
 
-
-    const color = platformColor(streamer.platform);
-
-    return `
-      <div
-        class="streamer-profile-page"
-        style="
-          background:#05070f;
-          min-height:100dvh;
-          color:#fff;
-        "
-      >
-
-        ${renderHeader()}
-
-        <main
-          class="streamer-profile-shell"
-          style="
-            max-width:1100px;
-            width:100%;
-            margin:auto;
-            padding:30px 18px 100px;
-          "
-        >
-
-          <button
-            id="profile-back"
-            style="
-              cursor:pointer;
-              border:1px solid rgba(255,255,255,.10);
-              background:rgba(255,255,255,.04);
-              color:#fff;
-              border-radius:9px;
-              padding:9px 14px;
-              margin-bottom:20px;
-            "
-          >
-            ← Back
-          </button>
-
-
-          <div
-            style="
-              border:1px solid rgba(255,255,255,.09);
-              background:rgba(255,255,255,.035);
-              border-radius:20px;
-              overflow:hidden;
-            "
-          >
-
-            <div
-              style="
-                aspect-ratio:16/7;
-                min-height:220px;
-                overflow:hidden;
-              "
-            >
-
-              <img
-                src="${streamer.thumbnail}"
-                alt=""
-                style="
-                  width:100%;
-                  height:100%;
-                  object-fit:cover;
-                "
-              />
-
-            </div>
-
-
-            <div style="padding:25px;">
-
-              <div
-                style="
-                  display:flex;
-                  align-items:center;
-                  gap:15px;
-                "
-              >
-
-                <img
-                  src="${streamer.avatar}"
-                  alt=""
-                  style="
-                    width:70px;
-                    height:70px;
-                    border-radius:50%;
-                    object-fit:cover;
-                    border:2px solid ${color};
-                  "
-                />
-
-                <div>
-
-                  <h1
-                    style="
-                      font-size:25px;
-                      font-weight:950;
-                    "
-                  >
-                    ${escapeHTML(streamer.name)}
-                  </h1>
-
-                  <div
-                    style="
-                      color:#7d899b;
-                      margin-top:3px;
-                    "
-                  >
-                    @${escapeHTML(streamer.username)}
-                  </div>
-
-                </div>
-
-              </div>
-
-
-              <div
-                style="
-                  margin-top:25px;
-                  padding:18px;
-                  border-radius:14px;
-                  background:rgba(255,255,255,.035);
-                "
-              >
-
-                <div
-                  style="
-                    display:flex;
-                    align-items:center;
-                    gap:8px;
-                    color:#ff4141;
-                    font-weight:900;
-                    font-size:13px;
-                  "
-                >
-
-                  <span
-                    style="
-                      width:8px;
-                      height:8px;
-                      border-radius:50%;
-                      background:#ff3030;
-                    "
-                  ></span>
-
-                  LIVE NOW
-
-                </div>
-
-                <h2
-                  style="
-                    margin-top:10px;
-                    font-size:20px;
-                    font-weight:850;
-                  "
-                >
-                  ${escapeHTML(streamer.title)}
-                </h2>
-
-                <p
-                  style="
-                    margin-top:7px;
-                    color:#7f8b9e;
-                  "
-                >
-                  ${escapeHTML(streamer.game)}
-                  ·
-                  ${formatViewers(streamer.viewers)} viewers
-                </p>
-
-              </div>
-
-
-              <a
-                href="${streamer.url}"
-                target="_blank"
-                rel="noopener noreferrer"
-                style="
-                  display:inline-flex;
-                  margin-top:20px;
-                  padding:12px 18px;
-                  border-radius:10px;
-                  background:${color};
-                  color:#05070f;
-                  font-weight:950;
-                  text-decoration:none;
-                "
-              >
-                Watch on ${platformName(streamer.platform)}
-              </a>
-
-            </div>
-
-          </div>
-
-        </main>
-
-      </div>
-    `;
-  }
-
-
-  /* =========================================================
-     MOBILE NAV
-     ========================================================= */
-
-  function renderMobileNav(active) {
-    return `
-      <nav class="mobile-bottom-nav">
-
-        <a
-          href="#/"
-          class="mobile-bottom-nav__item ${
-            active === "home"
-              ? "mobile-bottom-nav__item--active"
-              : ""
-          }"
-        >
-          <span class="mobile-bottom-nav__icon">⌂</span>
-          <span class="mobile-bottom-nav__label">Home</span>
-        </a>
-
-
-        <a
-          href="#/youtube"
-          class="mobile-bottom-nav__item ${
-            active === "youtube"
-              ? "mobile-bottom-nav__item--active"
-              : ""
-          }"
-        >
-          <span class="mobile-bottom-nav__icon">▶</span>
-          <span class="mobile-bottom-nav__label">YouTube</span>
-        </a>
-
-
-        <a
-          href="#/kick"
-          class="mobile-bottom-nav__item ${
-            active === "kick"
-              ? "mobile-bottom-nav__item--active"
-              : ""
-          }"
-        >
-          <span class="mobile-bottom-nav__icon">K</span>
-          <span class="mobile-bottom-nav__label">Kick</span>
-        </a>
-
-      </nav>
-    `;
-  }
-
-
-  /* =========================================================
-     SCROLL TOP
-     ========================================================= */
-
-  function renderScrollTop() {
-    return `
-      <button
-        id="tva-scroll-top"
-        aria-label="Scroll to top"
-        style="
-          position:fixed;
-          right:18px;
-          bottom:18px;
-          z-index:110;
-          width:42px;
-          height:42px;
-          border-radius:50%;
-          border:1px solid rgba(255,255,255,.12);
-          background:rgba(5,7,15,.9);
-          color:#fff;
-          cursor:pointer;
-          display:none;
-          backdrop-filter:blur(10px);
-        "
-      >
-        ↑
-      </button>
-    `;
-  }
-
-
-  /* =========================================================
-     SPLASH
-     ========================================================= */
-
-  function finishSplash() {
-    const splash = document.getElementById("tva-splash");
-
-    if (!splash) return;
-
-    splash.style.opacity = "0";
-    splash.style.transition = "opacity .35s ease";
-
-    setTimeout(() => {
-      splash.remove();
-      document.body.classList.add("tva-app-ready");
-
-      window.dispatchEvent(
-        new CustomEvent("tva-app-ready")
+    if (currentPage === "kick") {
+      list = list.filter(
+        c => c.platform === "Kick"
       );
-    }, 350);
+    }
+
+    if (searchText.trim()) {
+
+      const q =
+        searchText.trim().toLowerCase();
+
+      list = list.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.username.toLowerCase().includes(q) ||
+        c.game.toLowerCase().includes(q) ||
+        c.title.toLowerCase().includes(q)
+      );
+    }
+
+    return list;
   }
 
 
-  /* =========================================================
-     RENDER APP
-     ========================================================= */
+  /* =========================
+     MAIN PAGE
+     ========================= */
 
   function render() {
-    const app = document.getElementById("app");
 
-    if (!app) return;
+    const list = filteredCreators();
 
-    state.route = getRoute();
+    APP.innerHTML = `
+      <div class="tva-main">
 
-    if (state.route === "streamer") {
-      const id = window.location.hash
-        .replace("#/streamer/", "")
-        .split("?")[0];
+        ${header()}
 
-      app.innerHTML = renderStreamer(id);
+        <main class="tva-container">
+
+          ${hero()}
+
+          ${searchBox()}
+
+          ${filters()}
+
+          <section
+            id="tva-grid"
+            class="tva-grid"
+          >
+
+            ${
+              list.length
+                ? list.map(card).join("")
+                : `
+                  <div class="tva-empty">
+
+                    <div style="font-size:42px">
+                      📡
+                    </div>
+
+                    <h2>
+                      No live creators found
+                    </h2>
+
+                    <p>
+                      Try another search or platform.
+                    </p>
+
+                  </div>
+                `
+            }
+
+          </section>
+
+        </main>
+
+        <footer class="tva-footer">
+          TVAxKVA Live · Live Gaming Creators
+        </footer>
+
+      </div>
+    `;
+
+    events();
+  }
+
+
+  /* =========================
+     EVENTS
+     ========================= */
+
+  function events() {
+
+    document
+      .querySelectorAll("[data-page]")
+      .forEach(button => {
+
+        button.addEventListener("click", () => {
+
+          const page =
+            button.dataset.page;
+
+          if (page === "home") {
+            location.hash = "#/";
+          }
+
+          if (page === "youtube") {
+            location.hash = "#/youtube";
+          }
+
+          if (page === "kick") {
+            location.hash = "#/kick";
+          }
+
+        });
+
+      });
+
+
+    document
+      .querySelectorAll("[data-filter]")
+      .forEach(button => {
+
+        button.addEventListener("click", () => {
+
+          const filter =
+            button.dataset.filter;
+
+          if (filter === "all") {
+            location.hash = "#/";
+          }
+
+          if (filter === "youtube") {
+            location.hash = "#/youtube";
+          }
+
+          if (filter === "kick") {
+            location.hash = "#/kick";
+          }
+
+        });
+
+      });
+
+
+    const input =
+      document.getElementById(
+        "tva-search-input"
+      );
+
+    if (input) {
+
+      input.addEventListener(
+        "input",
+        event => {
+
+          searchText =
+            event.target.value;
+
+          render();
+
+          const newInput =
+            document.getElementById(
+              "tva-search-input"
+            );
+
+          if (newInput) {
+
+            newInput.focus();
+
+            newInput.setSelectionRange(
+              searchText.length,
+              searchText.length
+            );
+
+          }
+
+        }
+      );
+
     }
 
-    else if (state.route === "youtube") {
-      state.platform = "youtube";
-      app.innerHTML = renderPlatform("youtube");
+
+    document
+      .querySelectorAll(".tva-watch")
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const url =
+              button.dataset.url;
+
+            if (url) {
+              window.open(
+                url,
+                "_blank",
+                "noopener,noreferrer"
+              );
+            }
+
+          }
+        );
+
+      });
+  }
+
+
+  /* =========================
+     HASH ROUTING
+     ========================= */
+
+  function route() {
+
+    const hash =
+      window.location.hash;
+
+    if (hash === "#/youtube") {
+      currentPage = "youtube";
     }
 
-    else if (state.route === "kick") {
-      state.platform = "kick";
-      app.innerHTML = renderPlatform("kick");
+    else if (hash === "#/kick") {
+      currentPage = "kick";
     }
 
     else {
-      app.innerHTML = renderHome();
+      currentPage = "home";
     }
-
-    attachEvents();
-  }
-
-
-  /* =========================================================
-     EVENTS
-     ========================================================= */
-
-  function attachEvents() {
-
-    /* Search */
-    const search = document.getElementById("tva-search");
-
-    if (search) {
-      search.addEventListener("input", (event) => {
-        state.search = event.target.value;
-        render();
-      });
-    }
-
-
-    /* Filters */
-    document
-      .querySelectorAll(".tva-filter")
-      .forEach((button) => {
-
-        button.addEventListener("click", () => {
-
-          state.platform =
-            button.dataset.platform || "all";
-
-          render();
-        });
-
-      });
-
-
-    /* Streamer cards */
-    document
-      .querySelectorAll(".tva-streamer-card")
-      .forEach((card) => {
-
-        card.addEventListener("click", (event) => {
-
-          if (
-            event.target.closest(".tva-watch-button")
-          ) {
-            return;
-          }
-
-          const id = card.dataset.id;
-
-          if (id) {
-            navigate(`#/streamer/${id}`);
-          }
-
-        });
-
-
-        card.addEventListener("mouseenter", () => {
-          card.style.transform = "translateY(-4px)";
-          card.style.borderColor =
-            "rgba(83,252,24,.25)";
-        });
-
-
-        card.addEventListener("mouseleave", () => {
-          card.style.transform = "";
-          card.style.borderColor =
-            "rgba(255,255,255,.09)";
-        });
-
-      });
-
-
-    /* Watch buttons */
-    document
-      .querySelectorAll(".tva-watch-button")
-      .forEach((button) => {
-
-        button.addEventListener("click", () => {
-
-          const streamer = CONFIG.streamers.find(
-            (item) =>
-              item.id === button.dataset.id
-          );
-
-          if (!streamer) return;
-
-          window.open(
-            streamer.url,
-            "_blank",
-            "noopener,noreferrer"
-          );
-
-        });
-
-      });
-
-
-    /* Back */
-    const back = document.getElementById(
-      "profile-back"
-    );
-
-    if (back) {
-      back.addEventListener("click", () => {
-        navigate("#/");
-      });
-    }
-
-
-    /* Scroll top */
-    const scrollTop = document.getElementById(
-      "tva-scroll-top"
-    );
-
-    if (scrollTop) {
-
-      scrollTop.addEventListener("click", () => {
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth"
-        });
-      });
-
-      updateScrollButton();
-    }
-  }
-
-
-  function updateScrollButton() {
-    const button =
-      document.getElementById("tva-scroll-top");
-
-    if (!button) return;
-
-    button.style.display =
-      window.scrollY > 400
-        ? "block"
-        : "none";
-  }
-
-
-  /* =========================================================
-     REAL-TIME DEMO REFRESH
-     ========================================================= */
-
-  function refreshData() {
-
-    /*
-      Demo viewer-count update.
-
-      Replace this function later with:
-      - YouTube Data API
-      - Kick API/backend
-    */
-
-    CONFIG.streamers.forEach((streamer) => {
-
-      if (!streamer.live) return;
-
-      const variation =
-        Math.floor(Math.random() * 80) - 40;
-
-      streamer.viewers = Math.max(
-        1,
-        streamer.viewers + variation
-      );
-
-    });
-
-    state.lastUpdated = new Date();
 
     render();
   }
 
 
-  /* =========================================================
-     KEYBOARD SHORTCUTS
-     ========================================================= */
+  /* =========================
+     ESCAPE
+     ========================= */
 
-  document.addEventListener(
-    "keydown",
-    (event) => {
+  function escape(value) {
 
-      if (
-        event.key === "/" &&
-        document.activeElement?.tagName !== "INPUT"
-      ) {
-
-        event.preventDefault();
-
-        const input =
-          document.getElementById("tva-search");
-
-        if (input) {
-          input.focus();
-        }
-      }
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
 
 
-      if (event.key === "Escape") {
-
-        const input =
-          document.getElementById("tva-search");
-
-        if (
-          input &&
-          document.activeElement === input
-        ) {
-          input.blur();
-        }
-      }
-
-    }
-  );
-
-
-  /* =========================================================
-     HASH ROUTING
-     ========================================================= */
+  /* =========================
+     START
+     ========================= */
 
   window.addEventListener(
     "hashchange",
-    () => {
+    route
+  );
 
-      state.search = "";
+  route();
 
-      render();
 
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
+  /*
+    Remove original splash safely.
+  */
+
+  setTimeout(() => {
+
+    const splash =
+      document.getElementById(
+        "tva-splash"
+      );
+
+    if (splash) {
+
+      splash.style.opacity = "0";
+      splash.style.transition =
+        "opacity .35s ease";
+
+      setTimeout(() => {
+
+        splash.remove();
+
+        document.body.classList.add(
+          "tva-app-ready"
+        );
+
+        window.dispatchEvent(
+          new CustomEvent(
+            "tva-app-ready"
+          )
+        );
+
+      }, 350);
 
     }
-  );
 
-
-  /* =========================================================
-     SCROLL EVENT
-     ========================================================= */
-
-  window.addEventListener(
-    "scroll",
-    updateScrollButton,
-    { passive: true }
-  );
-
-
-  /* =========================================================
-     INITIALIZE
-     ========================================================= */
-
-  function init() {
-
-    render();
-
-    setTimeout(() => {
-      finishSplash();
-    }, 800);
-
-    /*
-      Demo refresh every 30 seconds.
-    */
-    setInterval(
-      refreshData,
-      CONFIG.refreshInterval
-    );
-  }
-
-
-  if (
-    document.readyState === "loading"
-  ) {
-    document.addEventListener(
-      "DOMContentLoaded",
-      init,
-      { once: true }
-    );
-  } else {
-    init();
-  }
+  }, 900);
 
 })();
